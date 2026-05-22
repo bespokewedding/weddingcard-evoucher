@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BESPOKE 囍帖預覽器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@1&family=Patrick+Hand&family=Allison&family=Imperial+Script&display=swap" rel="stylesheet">
+    <link href="https://fonts.cdnfonts.com/css/aniyah-personal-use" rel="stylesheet">
+    
+    <style>
+        /* 核心畫布設定 - 路徑已改為 bg4.jpg */
+        .preview-canvas {
+            width: 100%;
+            max-width: 900px;
+            aspect-ratio: 2400 / 1700;
+            position: relative;
+            background-image: url('bg4.jpg?v=20260429_v4'); 
+            background-color: #FFFDD0; 
+            background-size: cover;
+            background-position: center;
+            overflow: hidden;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+            container-type: inline-size;
+        }
+
+        .font-im-fell { font-family: 'IM Fell English', serif; }
+        .font-aloja { font-family: 'Patrick Hand', cursive; }
+        .font-impact { font-family: 'Impact', 'Arial Black', sans-serif; }
+        .font-aniyah { font-family: 'Aniyah Personal Use', 'Allison', 'Imperial Script', cursive; }
+
+        /* 文字圖層 - 中咖色 #8B4513 */
+        .bride-layer { position: absolute; top: 24%; left: 0; width: 50%; color: #8B4513; z-index: 10; display: flex; justify-content: center; transform: translateX(-3.2cqw); }
+        .groom-layer { position: absolute; top: 43.5%; left: 0; width: 50%; color: #8B4513; z-index: 10; display: flex; justify-content: center; transform: translateX(8.2cqw); }
+        .name-wrap { width: 80%; text-align: center; }
+        #pBride, #pGroom { font-size: 4.5cqw; line-height: 1; white-space: nowrap; display: inline-block; }
+        .date-layer { position: absolute; top: 64%; left: 9%; width: 32%; text-align: center; color: #8B4513; font-size: 2cqw; letter-spacing: 0.25em; }
+        .venue-layer { position: absolute; top: 72%; left: 5.5%; width: 39%; text-align: center; color: #8B4513; text-transform: uppercase; font-size: 1.6cqw; }
+        .address-layer { position: absolute; top: 77%; left: 2%; width: 46%; text-align: center; color: #8B4513; text-transform: uppercase; font-size: 1.6cqw; line-height: 1.2; }
+
+        /* 產品詳情面板 */
+        .info-panel {
+            position: absolute; top: 5%; right: 5%; width: 40cqw; height: 64cqw;
+            background: rgba(255,255,255,0.12); padding: 1.5cqw; border-radius: 2cqw;
+            z-index: 20; backdrop-filter: blur(8px); display: flex; flex-direction: column;
+            border: 1px solid rgba(255,255,255,0.1); gap: 0;
+        }
+
+        .brand-logo-wrap { flex: 0 0 40%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        #pDetailBrandImg { max-width: 90%; max-height: 85%; object-fit: contain; }
+
+        /* 產品名稱顏色：橙色 */
+        .prod-name-wrap { flex: 0 0 20%; display: flex; align-items: center; justify-content: center; text-align: center; }
+        #pDetailProdName { font-weight: bold; color: #8B4513; line-height: 1.1; font-size: 4.2cqw; text-shadow: 0 2px 5px rgba(0,0,0,0.4); }
+
+        .tc-wrap { flex: 0 0 30%; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
+        #pDetailTC { color: #8B4513; opacity: 0.8; line-height: 1.1; word-break: break-all; white-space: pre-wrap; text-align: left; width: 100%; }
+
+        .barcode-wrap { flex: 0 0 10%; border-top: 1px solid rgba(139, 69, 19, 0.15); display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .barcode-img { width: 70%; height: 2cqw; background: linear-gradient(90deg, #000 5%, transparent 5%, transparent 8%, #000 8%, #000 12%, transparent 12%, #000 15%, #000 16%, transparent 16%, #000 20%, transparent 20%, transparent 25%, #000 25%, #000 28%, transparent 28%, #000 35%, #000 37%, transparent 37%, #000 45%, transparent 45%, transparent 48%, #000 48%, #000 55%, transparent 55%, #000 60%, #000 62%, transparent 62%, #000 70%, transparent 70%, transparent 75%, #000 75%, #000 85%, transparent 85%, #000 90%, #000 95%, transparent 95%); background-color: #fff; border-radius: 1px; }
+        .barcode-num { color: #8B4513; font-size: 0.7cqw; font-family: monospace; letter-spacing: 0.1em; margin-top: 0.1cqw; }
+        .expiry-date { color: #8B4513; opacity: 0.7; font-size: 0.7cqw; font-family: sans-serif; }
+
+        .panel-content-hidden { opacity: 0; transition: opacity 0.3s ease; }
+
+        @media (min-width: 1280px) {
+            .control-panel-scroll { max-height: 90vh; overflow-y: auto; }
+            .control-panel-scroll::-webkit-scrollbar { width: 6px; }
+            .control-panel-scroll::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+        }
+    </style>
+</head>
+<body class="bg-zinc-900 min-h-screen flex items-center justify-center p-4 text-zinc-900">
+
+    <div class="max-w-7xl w-full grid grid-cols-1 xl:grid-cols-[1fr,400px] gap-10">
+        
+        <div class="flex flex-col items-center relative">
+            <div class="preview-canvas">
+                <div class="bride-layer font-aniyah"><div class="name-wrap"><h1 id="pBride">Rosesalina</h1></div></div>
+                <div class="groom-layer font-aniyah"><div class="name-wrap"><h1 id="pGroom">Benjamin</h1></div></div>
+                <div class="date-layer font-aloja"><span id="pDate" class="uppercase">October 15, 2026</span></div>
+                <div class="venue-layer font-impact"><span id="pVenue">Four Seasons Grand Ballroom</span></div>
+                <div class="address-layer font-impact"><span id="pAddress" class="opacity-90">8 Finance Street, Central, Hong Kong</span></div>
+                
+                <div id="pDetailPanel" class="info-panel shadow-2xl">
+                    <div class="brand-logo-wrap panel-content-hidden">
+                        <img id="pDetailBrandImg" src="">
+                    </div>
+                    <div class="prod-name-wrap panel-content-hidden">
+                        <h4 id="pDetailProdName"></h4>
+                    </div>
+                    <div class="tc-wrap panel-content-hidden">
+                        <p id="pDetailTC"></p>
+                    </div>
+                    <div class="barcode-wrap panel-content-hidden">
+                        <div class="barcode-img"></div>
+                        <div class="barcode-num">8888888888</div>
+                        <div class="expiry-date">Expiry Date : 31/12/2026</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-[#F4F4F5] rounded-[2rem] shadow-2xl h-fit border border-zinc-200 overflow-hidden flex flex-col">
+            <div class="flex gap-0 bg-zinc-200 border-b">
+                <button onclick="mainSwitch('editor')" id="main-tab-editor" class="flex-1 py-5 text-xs font-bold transition-all text-zinc-900 border-r bg-[#F4F4F5]">01 設計編輯器</button>
+                <button onclick="mainSwitch('brands')" id="main-tab-brands" class="flex-1 py-5 text-xs font-bold transition-all text-zinc-500 hover:text-zinc-900 bg-transparent">02 禮券品牌</button>
+            </div>
+
+            <div class="control-panel-scroll p-8">
+                <section id="section-editor" class="block">
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div><label class="block text-[9px] font-bold text-zinc-400 uppercase mb-1">新娘名字</label><input type="text" id="iBride" value="Rosesalina" class="w-full p-3 bg-white border rounded-xl outline-none focus:border-zinc-900 text-lg font-impact shadow-sm"></div>
+                            <div><label class="block text-[9px] font-bold text-zinc-400 uppercase mb-1">新郎名字</label><input type="text" id="iGroom" value="Benjamin" class="w-full p-3 bg-white border rounded-xl outline-none focus:border-zinc-900 text-lg font-impact shadow-sm"></div>
+                        </div>
+                        <div><label class="block text-[9px] font-bold text-zinc-400 uppercase mb-1">婚禮日期</label><input type="date" id="iDate" value="2026-10-15" class="w-full p-3 bg-white border rounded-xl outline-none focus:border-zinc-900 text-red-900 font-sans font-bold shadow-sm"></div>
+                        <div><label class="block text-[9px] font-bold text-zinc-400 uppercase mb-1">宴客場地</label><input type="text" id="iVenue" value="Four Seasons Grand Ballroom" class="w-full p-3 bg-white border rounded-xl outline-none focus:border-zinc-900 uppercase text-xs font-impact shadow-sm"></div>
+                        <div><label class="block text-[9px] font-bold text-zinc-400 uppercase mb-1">詳細地址</label><textarea id="iAddress" rows="2" class="w-full p-3 bg-white border rounded-xl outline-none focus:border-zinc-900 uppercase text-[10px] font-impact shadow-sm">8 Finance Street, Central, Hong Kong</textarea></div>
+                    </div>
+                </section>
+
+                <section id="section-brands" class="hidden">
+                    <div id="brandGrid" class="grid grid-cols-4 gap-2 mb-8"></div>
+                    <div id="productSection" class="hidden animate-fade-in border-t pt-6 border-zinc-300">
+                        <h3 id="selectedBrandTitle" class="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-3 pb-1">產品列表</h3>
+                        <div id="productGrid" class="grid grid-cols-1 gap-2"></div>
+                    </div>
+                </section>
+
+                <div class="mt-10">
+                    <button class="w-full py-4 bg-zinc-900 text-white rounded-xl font-bold uppercase tracking-widest text-xs shadow-lg hover:bg-zinc-800 transition-all mb-4">確認並保存設計</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const allBrands = [
+            { name: "agnès b.", img: "https://upload.wikimedia.org/wikipedia/commons/9/97/Agn%C3%A8s_b._logo.png" },
+            { name: "Godiva", img: "https://www.godiva.com.tw/img/godiva_logo.png" },
+            { name: "Lady M", img: "https://img.shoplineapp.com/media/image_clips/5b7a801b8f90480017e4ca83/original.png?1534754834" },
+            { name: "東海堂", img: "https://www.aromebakery.com.hk/arome/images/logo_v2.png" },
+            { name: "華御結", img: "https://www.pacificplace.com.hk/-/media/images/pacificplace2/starstreet/hana-musubi/hana-musubi_logo_apr2022_1.ashx?rev=973c0e9ef342404e845ed5a7f85bd14b&hash=9d532561b9d0e798e9ffc0f878c54d79" },
+            { name: "奇華餅家", img: "https://media.langhamplace.com.hk/cms/store/ENcscXXFp.png" }
+        ];
+
+        const defaultProducts = [
+            { brandName: "agnès b.", product: "$50 心意禮券", tc: `e-voucher Terms & Conditions:\nThe e-voucher entitles the holder a cash value of HK$50 spending in any of agnès b. / SPORT b. / agnès b. CAFÉ / agnès b. FLEURISTE / agnès b. DÉLICES shops (except SOGO & Horizon Outlet Store) in Hong Kong. For the corresponding shop address, please refer to https://www.agnesb.com.hk/storeLocator.\nThe e-voucher can only be used on or before the expiry date as shown on the e-voucher. Request for extension of validity of this e-voucher will not be entertained. Any unused amount of this e-voucher will be forfeited.\nThe e-voucher must be presented and can only be used once and will be collected upon redemption, after which it will become invalid. No replacement will be issued if the e-voucher is lost or damaged.\nThe e-voucher is non-transferable, non-resellable, and cannot be cancelled, or exchanged for cash, discounts, credit, or other products or services, and it cannot be used in conjunction with any other vouchers, discounts, privilege cards and other promotional offers.\nAgnès b. HK Limited reserves the right to amend and withdraw any terms and conditions or terminate this offer without prior notice.\nIn case of any disputes relating to the e-voucher, the decision of Agnès b. HK Limited shall remain final and binding on all relevant parties.` },
+            { brandName: "agnès b.", product: "$100 心意禮券", tc: `e-voucher Terms & Conditions:\nThe e-voucher entitles the holder a cash value of HK$100 spending in any of agnès b. / SPORT b. / agnès b. CAFÉ / agnès b. FLEURISTE / agnès b. DÉLICES shops (except SOGO & Horizon Outlet Store) in Hong Kong. For the corresponding shop address, please refer to https://www.agnesb.com.hk/storeLocator.\nThe e-voucher can only be used on or before the expiry date as shown on the e-voucher. Request for extension of validity of this e-voucher will not be entertained. Any unused amount of this e-voucher will be forfeited.\nThe e-voucher must be presented and can only be used once and will be collected upon redemption, after which it will become invalid. No replacement will be issued if the e-voucher is lost or damaged.\nThe e-voucher is non-transferable, non-resellable, and cannot be cancelled, or exchanged for cash, discounts, credit, or other products or services, and it cannot be used in conjunction with any other vouchers, discounts, privilege cards and other promotional offers.\nAgnès b. HK Limited reserves the right to amend and withdraw any terms and conditions or terminate this offer without prior notice.\nIn case of any disputes relating to the e-voucher, the decision of Agnès b. HK Limited shall remain final and binding on all relevant parties.` },
+            { brandName: "Godiva", product: "HK$50 禮券", tc: `使用條款:\n此GODIVA電子禮券有效期由購買日起計數，最少11個月\n此禮券持有人可在本券有效期內於任何香港GODIVA專門店 (機場、免稅店、祟光銅鑼灣百貨公司及期間限定店除外) 換取同等價值貨品，逾期無效。\n此電子禮券只可使用一次並以GODIVA的系統記錄為準。\n影印本及螢幕截圖恕不接納。\n此電子禮券不適用於電話、傳真或網上購物。\n此電子禮券 (或其部分面值) 不能用以套取現金。持有人不得折回現金或以此電子禮券兌換金\n此電子禮券不可與GODIVA VIP咭或其他推廣優惠一併使用。\n如對此電子禮券有任何爭議，Godiva Chocolatier (Asia) Limited保留最終決定權。\n分店地址︰https://www.godiva.com.hk/boutiques.html` },
+            { brandName: "Godiva", product: "HK$100 禮券", tc: `使用條款:\n此禮券持有人可在本券有效期內於任何香港GODIVA專門店 (機場、免稅店、祟光銅鑼灣百貨公司及期間限定店除外) 換取同等價值貨品，逾期無效。\n此電子禮券只可使用一次並以GODIVA的系統記錄為準。\n影印本及螢幕截圖恕不接納。\n此電子禮券不適用於電話、傳真或網上購物。\n此電子禮券 (或其部分面值) 不能用以套取現金。持有人不得折回現金或以此電子禮券兌換金\n此電子禮券不可與GODIVA VIP咭或其他推廣優惠一併使用。\n如對此電子禮券有任何爭議，Godiva Chocolatier (Asia) Limited保留最終決定權。\n分店地址︰https://www.godiva.com.hk/boutiques.html` },
+            { brandName: "Lady M", product: "$80 禮券", tc: `voucher Terms & Conditions:\nThe certificate can only be used to redeem takeaway cakes and drinks at Lady M Hong Kong\nThe certificate can only be used in Hong Kong\nThe certificate is not applicable for any whole cake pre-order, merchandize or dine-in order\nThe certificate must be presented upon purchase\nThe certificate cannot be used in conjunction with other promotions\nThe certificate is only valid when stamped by Lady M Hong Kong\nThe certificate is non-refundable or non-exchangeable for cash\nThe redemption item is subject to availability\nDamaged, altered or expired certificate will not be accepted\nLady M Hong Kong reserves the right to amend the above terms without prior notice\nLady M Hong Kong reserves the right of all final decisions in case of any dispute` },
+            { brandName: "Lady M", product: "$150 禮券", tc: `voucher Terms & Conditions:\nThe certificate can only be used to redeem takeaway cakes and drinks at Lady M Hong Kong\nThe certificate can only be used in Hong Kong\nThe certificate is not applicable for any whole cake pre-order, merchandize or dine-in order\nThe certificate must be presented upon purchase\nThe certificate cannot be used in conjunction with other promotions\nThe certificate is only valid when stamped by Lady M Hong Kong\nThe certificate is non-refundable or non-exchangeable for cash\nThe redemption item is subject to availability\nDamaged, altered or expired certificate will not be accepted\nLady M Hong Kong reserves the right to amend the above terms without prior notice\nLady M Hong Kong reserves the right of all final decisions in case of any dispute` },
+            { brandName: "華御結", product: "HK$25 禮券", tc: `使用細則及條款 ：\n此券適用於華御結各分店(SOGO分店除外）。此券不得兌換現金、轉讓，並恕不作退款或現金找贖。此券不適用於購買套餐，及不可與其他優惠同時使用。此券之影印本無效。此券如經塗改、損壞、模糊及逾期，即屬作廢。華御結保留更改此券使用條款之權利及任何爭議之最終決定權。` },
+            { brandName: "華御結", product: "HK$50 禮券", tc: `使用細則及條款 ：\n此券適用於華御結各分店(SOGO分店除外）。此券不得兌換現金、轉讓，並恕不作退款或現金找贖。此券不適用於購買套餐，及不可與其他優惠同時使用。此券之影印本無效。此券如經塗改、損壞、模糊及逾期，即屬作廢。華御結保留更改此券使用條款之權利及任何爭議之最終決定權。` },
+            { brandName: "東海堂", product: "HK$25 禮券", tc: `東海堂條款及細則：\n憑此券可於有效期內在東海堂有限公司（“東海堂”）旗下位於香港特別行政區境內之東海堂餅店換領總值HK$50之禮餅（以折扣前零售價計算）\n此券不適用於電話、手機程式或網上購物\n此券只適用於換領禮餅，不適用於換領任何東海堂餅店寄賣之物品、所有飲品及所有其他產品\n請於付款前出示此券\n此券不能兌換現金或現金券\n此券行使後將不獲發還\n行使此券不獲現金或任何形式之找贖\n行使此券不獲發任何會員積分\n此券如有過期、遺失、塗污或損毀，即作廢無效，恕不補發\n此券只可行使一次，影印本無效\n此券不可與其他推廣優惠一併使用。此券不允許作任何形式之轉售\n如作任何商業或推廣用途，必須事先得到東海堂書面同意\n東海堂保留權利修改本條款及細則而不作另行通知\n如有任何爭議，東海堂保留最終決定權。本條款及細則以中文版本為準，如與英文之譯有本任何分歧，一概以中文版本為準` },
+            { brandName: "東海堂", product: "HK$50 禮券", tc: `東海堂條款及細則：\n憑此券可於有效期內在東海堂有限公司（“東海堂”）旗下位於香港特別行政區境內之東海堂餅店換領總值HK$50之禮餅（以折扣前零售價計算）\n此券不適用於電話、手機程式或網上購物\n此券只適用於換領禮餅，不適用於換領任何東海堂餅店寄賣之物品、所有飲品及所有其他產品\n請於付款前出示此券\n此券不能兌換現金或現金券\n此券行使後將不獲發還\n行使此券不獲現金或任何形式之找贖\n行使此券不獲發任何會員積分\n此券如有過期、遺失、塗污或損毀，即作廢無效，恕不補發\n此券只可行使一次，影印本無效\n此券不可與其他推廣優惠一併使用。此券不允許作任何形式之轉售\n如作任何商業或推廣用途，必須事先得到東海堂書面同意\n東海堂保留權利修改本條款及細則而不作另行通知\n如有任何爭議，東海堂保留最終決定權。本條款及細則以中文版本為準，如與英文之譯有本任何分歧，一概以中文版本為準` },
+            { brandName: "奇華餅家", product: "HK$50 禮券", tc: `條款及細則：\n•此券不能兑換現金或作現金找贖，\n•此券不能與其他推廣優惠同時使用。\n•此券只限使用一次，影印本恕不接受。\n•此券不適用於奇華餅家與其他機構或公司合作之產品。\n•此券不適用於海外月餅咕或月餅會供款。\n•此券只適用於奇華餅家香港各分店(香港國際機場分店除外）。\n•如有任何爭議，「奇華餅家有限公司』將保留最終決定權。` },
+            { brandName: "奇華餅家", product: "金盈喜餅咭", tc: `條款及細則：\n•此券不能兑換現金或作現金找贖，\n•此券不能與其他推廣優惠同時使用。\n•此券只限使用一次，影印本恕不接受。\n•此券不適用於奇華餅家與其他機構或公司合作之產品。\n•此券不適用於海外月餅咕或月餅會供款。\n•此券只適用於奇華餅家香港各分店(香港國際機場分店除外）。\n•如有任何爭議，「奇華餅家有限公司』將保留最終決定權。` },
+            { brandName: "奇華餅家", product: "金雅喜餅咭", tc: `條款及細則：\n•此券不能兑換現金或作現金找贖，\n•此券不能與其他推廣優惠同時使用。\n•此券只限使用一次，影印本恕不接受。\n•此券不適用於奇華餅家與其他機構或公司合作之產品。\n•此券不適用於海外月餅咕或月餅會供款。\n•此券只適用於奇華餅家香港各分店(香港國際機場分店除外）。\n•如有任何爭議，「奇華餅家有限公司』將保留最終決定權。` },
+            { brandName: "奇華餅家", product: "金緣喜餅咭", tc: `條款及細則：\n•此券不能兑換現金或作現金找贖，\n•此券不能與其他推廣優惠同時使用。\n•此券只限使用一次，影印本恕不接受。\n•此券不適用於奇華餅家與其他機構或公司合作之產品。\n•此券不適用於海外月餅咕或月餅會供款。\n•此券只適用於奇華餅家香港各分店(香港國際機場分店除外）。\n•如有任何爭議，「奇華餅家有限公司』將保留最終決定權。` },
+            { brandName: "奇華餅家", product: "金御喜餅咭", tc: `條款及細則：\n•此券不能兑換現金或作現金找贖，\n•此券不能與其他推廣優惠同時使用。\n•此券只限使用一次，影印本恕不接受。\n•此券不適用於奇華餅家與其他機構或公司合作之產品。\n•此券不適用於海外月餅咕或月餅會供款。\n•此券只適用於奇華餅家香港各分店(香港國際機場分店除外）。\n•如有任何爭議，「奇華餅家有限公司』將保留最終決定權。` },
+            { brandName: "奇華餅家", product: "龍鳳對餅咭", tc: `條款及細則：\n龍鳳對餅咭可兌換龍鳳對餅嫁喜禮餅1盒*\n或可照價換取任何奇華餅家產品 以正價計算。\n【禮券 / 實體產品：產品以禮券形式交付，而並非實體產品，顧客需憑券到所屬商戶門市換取券上產品。】\n所有嫁喜禮券均適用於奇華餅家的任何正價產品。\n禮卡背後所列印之條款如下：\n• 此券如於澳門、台灣或美國分店使用，其換領須依據香港龍鳳對餅之價值為準。\n• 請提前兩星期到本公司分店預訂，以便為閣下安排。\n• 此券不能兑換現金及不設任何形式之找贖。\n• 此券不能與其他推廣優惠同時使用。\n• 此券不適用於奇華餅家與其他機構或公司合作之產品。\n• 此券不適用於購買或兑換任何奇華禮券、嫁喜餅券及月餅券或作月餅會供款。\n• 此券不適用於香港國際機場及中國分店。\n• 如有任何爭議，「奇華餅家有限公司」，將保留最終決定權。` }
+        ];
+
+        function mainSwitch(target) {
+            const editorSec = document.getElementById('section-editor');
+            const brandsSec = document.getElementById('section-brands');
+            const tabEditor = document.getElementById('main-tab-editor');
+            const tabBrands = document.getElementById('main-tab-brands');
+            if (target === 'editor') {
+                editorSec.classList.replace('hidden', 'block');
+                brandsSec.classList.replace('block', 'hidden');
+                tabEditor.className = "flex-1 py-5 text-xs font-bold transition-all text-zinc-900 border-r bg-[#F4F4F5]";
+                tabBrands.className = "flex-1 py-5 text-xs font-bold transition-all text-zinc-500 hover:text-zinc-900 bg-transparent";
+            } else {
+                brandsSec.classList.replace('hidden', 'block');
+                editorSec.classList.replace('block', 'hidden');
+                tabBrands.className = "flex-1 py-5 text-xs font-bold transition-all text-zinc-900 border-l bg-[#F4F4F5]";
+                tabEditor.className = "flex-1 py-5 text-xs font-bold transition-all text-zinc-500 hover:text-zinc-900 bg-transparent";
+                renderBrands();
+            }
+        }
+
+        function renderBrands() {
+            const grid = document.getElementById('brandGrid');
+            grid.innerHTML = '';
+            allBrands.forEach(brand => {
+                const btn = document.createElement('button');
+                btn.className = "aspect-square border-2 border-zinc-300 bg-[#E4E4E7] p-2 hover:bg-white hover:border-zinc-900 rounded-xl transition-all flex items-center justify-center overflow-hidden shadow-sm";
+                btn.onclick = () => showProducts(brand.name, brand.img);
+                btn.innerHTML = `<img src="${brand.img}" class="max-h-full max-w-full object-contain">`;
+                grid.appendChild(btn);
+            });
+        }
+
+        function showProducts(bName, bImg) {
+            const section = document.getElementById('productSection');
+            const grid = document.getElementById('productGrid');
+            const title = document.getElementById('selectedBrandTitle');
+            section.classList.remove('hidden');
+            title.innerText = `${bName} 產品選擇`;
+            grid.innerHTML = '';
+            defaultProducts.filter(p => p.brandName === bName).forEach(p => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-3 border border-zinc-300 bg-white rounded-xl hover:bg-zinc-900 hover:text-white text-xs font-bold transition-all shadow-sm mb-1";
+                btn.innerText = p.product;
+                btn.onclick = () => applySelection(bImg, p.product, p.tc);
+                grid.appendChild(btn);
+            });
+        }
+
+        function applySelection(img, name, tc) {
+            document.querySelectorAll('.panel-content-hidden').forEach(el => el.style.opacity = '1');
+            document.getElementById('pDetailBrandImg').src = img;
+            document.getElementById('pDetailProdName').innerText = name;
+            const tcEl = document.getElementById('pDetailTC');
+            tcEl.innerText = tc;
+            setTimeout(() => { autoScaleText(tcEl, 1.1, 0.4); }, 10);
+        }
+
+        function autoScaleText(element, maxFontSize, minFontSize) {
+            const parent = element.parentElement;
+            let fontSizeCqw = maxFontSize;
+            element.style.fontSize = fontSizeCqw + 'cqw';
+            while (element.scrollHeight > parent.offsetHeight && fontSizeCqw > minFontSize) {
+                fontSizeCqw -= 0.05;
+                element.style.fontSize = fontSizeCqw + 'cqw';
+            }
+        }
+
+        const sync = () => {
+            const brideInput = document.getElementById('iBride');
+            const groomInput = document.getElementById('iGroom');
+            const dateInput = document.getElementById('iDate');
+            const venueInput = document.getElementById('iVenue');
+            const addressInput = document.getElementById('iAddress');
+
+            if (brideInput) document.getElementById('pBride').innerText = brideInput.value;
+            if (groomInput) document.getElementById('pGroom').innerText = groomInput.value;
+            
+            if (dateInput && dateInput.value) {
+                const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                document.getElementById('pDate').innerText = new Date(dateInput.value).toLocaleDateString('en-US', options);
+            }
+            if (venueInput) document.getElementById('pVenue').innerText = venueInput.value;
+            if (addressInput) document.getElementById('pAddress').innerText = addressInput.value;
+        };
+
+        ['iBride', 'iGroom', 'iDate', 'iVenue', 'iAddress'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('input', sync);
+        });
+
+        window.onload = sync;
+    </script>
+</body>
+</html>
