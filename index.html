@@ -124,12 +124,13 @@
             font-family: 'Lora', serif;
         }
 
-        /* 產品詳情面板 */
+        /* 產品詳情面板 - 固定顯示 */
         .info-panel {
             position: absolute; top: 5%; right: 5%; width: 40cqw; height: 64cqw;
             background: rgba(255, 255, 255, 0.69); padding: 1.5cqw; border-radius: 2cqw;
             z-index: 20; backdrop-filter: blur(8px); display: flex; flex-direction: column;
             border: 1px solid rgba(255,255,255,0.1); gap: 0;
+            opacity: 1 !important; /* 確保內容常駐 */
         }
 
         .brand-logo-wrap { flex: 0 0 24%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
@@ -145,10 +146,9 @@
         .tc-wrap { flex: 0 0 35%; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
         #pDetailTC { opacity: 0.8; line-height: 1.1; word-break: break-all; white-space: pre-wrap; text-align: left; width: 100%; }
 
-        .footer-logos { flex: 0 0 11%; border-top: 1px solid rgba(139, 69, 19, 0.15); display: flex; justify-content: space-around; align-items: center; }
+        /* 底部 LOGO 區域 - 固定顯示 */
+        .footer-logos { flex: 0 0 11%; border-top: 1px solid rgba(139, 69, 19, 0.15); display: flex; justify-content: space-around; align-items: center; opacity: 1 !important; }
         .footer-logos img { height: 70%; object-fit: contain; width: 33.33%; }
-
-        .panel-content-hidden { opacity: 0; transition: opacity 0.3s ease; }
 
         @media (min-width: 1280px) {
             .control-panel-scroll { max-height: 90vh; overflow-y: auto; }
@@ -201,20 +201,20 @@
                 <div class="address-layer"><span id="pAddress" class="opacity-90">8 Finance Street, Central, Hong Kong</span></div>
                 
                 <div id="pDetailPanel" class="info-panel shadow-2xl">
-                    <div class="brand-logo-wrap panel-content-hidden">
+                    <div class="brand-logo-wrap">
                         <img id="pDetailBrandImg" src="">
                     </div>
-                    <div class="qrcode-section panel-content-hidden">
+                    <div class="qrcode-section">
                         <div id="qrcode" class="qrcode-img"></div>
                         <div id="pExpiry" class="expiry-date">Expiry Date : 31/12/2026</div>
                     </div>
-                    <div class="prod-name-wrap panel-content-hidden">
+                    <div class="prod-name-wrap">
                         <h4 id="pDetailProdName"></h4>
                     </div>
-                    <div class="tc-wrap panel-content-hidden">
+                    <div class="tc-wrap">
                         <p id="pDetailTC"></p>
                     </div>
-                    <div class="footer-logos panel-content-hidden">
+                    <div class="footer-logos">
                         <img src="Bespoke_logo-Aqua1_long1.png" alt="Logo L">
                         <img src="BespokeMallLogo_Final2023副本.PNG" alt="Logo R">
                     </div>
@@ -315,7 +315,6 @@
             const canvas = document.getElementById('previewCanvas');
             canvas.style.backgroundImage = `url('./bg${filename}.jpg?v=20260429_v4')`;
             
-            // 文字顏色處理
             const textLayers = [
                 document.getElementById('pBride'),
                 document.getElementById('pGroom'),
@@ -326,7 +325,7 @@
             ];
             const svgText = document.querySelector('.date-row-top-svg textPath');
 
-            let targetColor = '#8B4513'; // 預設顏色
+            let targetColor = '#8B4513';
             if (label === 'D') targetColor = '#ffffff';
             else if (label === 'F') targetColor = '#333062';
 
@@ -389,7 +388,6 @@
         }
 
         function applySelection(img, name, tc) {
-            document.querySelectorAll('.panel-content-hidden').forEach(el => el.style.opacity = '1');
             document.getElementById('pDetailBrandImg').src = img;
             document.getElementById('pDetailProdName').innerText = name;
             const tcEl = document.getElementById('pDetailTC');
