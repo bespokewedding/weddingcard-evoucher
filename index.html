@@ -160,6 +160,11 @@
             cursor: pointer;
             border: 2px solid transparent;
             transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
         }
         .bg-option:hover { border-color: #8B4513; }
         .bg-option.active { border-color: #8B4513; background-color: white; }
@@ -233,13 +238,13 @@
                     <div class="space-y-4">
                         <div class="mb-6">
                             <label class="block text-[9px] font-bold text-zinc-400 uppercase mb-2">背景款式選擇</label>
-                            <div class="grid grid-cols-6 gap-2">
-                                <button onclick="changeBG('10', 'A')" class="bg-option active p-2 rounded-lg bg-zinc-200 text-xs font-bold" data-bg="10">A</button>
-                                <button onclick="changeBG('11', 'B')" class="bg-option p-2 rounded-lg bg-zinc-200 text-xs font-bold" data-bg="11">B</button>
-                                <button onclick="changeBG('12', 'C')" class="bg-option p-2 rounded-lg bg-zinc-200 text-xs font-bold" data-bg="12">C</button>
-                                <button onclick="changeBG('13', 'D')" class="bg-option p-2 rounded-lg bg-zinc-200 text-xs font-bold" data-bg="13">D</button>
-                                <button onclick="changeBG('14', 'E')" class="bg-option p-2 rounded-lg bg-zinc-200 text-xs font-bold" data-bg="14">E</button>
-                                <button onclick="changeBG('15', 'F')" class="bg-option p-2 rounded-lg bg-zinc-200 text-xs font-bold" data-bg="15">F</button>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="changeBG('10', 'A')" class="bg-option active p-2 rounded-lg bg-zinc-200 text-[10px] font-bold" data-bg="10">A - 晨曦花語</button>
+                                <button onclick="changeBG('11', 'B')" class="bg-option p-2 rounded-lg bg-zinc-200 text-[10px] font-bold" data-bg="11">B - 經典雅致</button>
+                                <button onclick="changeBG('12', 'C')" class="bg-option p-2 rounded-lg bg-zinc-200 text-[10px] font-bold" data-bg="12">C - 秋日時刻</button>
+                                <button onclick="changeBG('13', 'D')" class="bg-option p-2 rounded-lg bg-zinc-200 text-[10px] font-bold" data-bg="13">D - 皇室瑰麗</button>
+                                <button onclick="changeBG('14', 'E')" class="bg-option p-2 rounded-lg bg-zinc-200 text-[10px] font-bold" data-bg="14">E - 簡約現代</button>
+                                <button onclick="changeBG('15', 'F')" class="bg-option p-2 rounded-lg bg-zinc-200 text-[10px] font-bold" data-bg="15">F - 浪漫邂逅</button>
                             </div>
                         </div>
 
@@ -388,7 +393,6 @@
         }
 
         function applySelection(img, name, tc) {
-            // 啟用 QRCode 區域
             document.getElementById('qrcodeSection').style.visibility = 'visible';
             document.getElementById('pDetailBrandImg').src = img;
             document.getElementById('pDetailProdName').innerText = name;
