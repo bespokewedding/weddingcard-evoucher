@@ -127,7 +127,7 @@
         /* 產品詳情面板 - 固定顯示 */
         .info-panel {
             position: absolute; top: 5%; right: 5%; width: 40cqw; height: 64cqw;
-            background: rgba(255, 255, 255, 0.69); padding: 1.5cqw; border-radius: 2cqw;
+            background: rgba(255, 255, 255, 1); padding: 1.5cqw; border-radius: 2cqw;
             z-index: 20; backdrop-filter: blur(100px); display: flex; flex-direction: column;
             border: 1px solid rgba(255,255,255,0.1); gap: 0;
             opacity: 1 !important;
@@ -329,7 +329,7 @@
             const svgText = document.querySelector('.date-row-top-svg textPath');
 
             let targetColor = '#8B4513';
-            if (label === 'D') targetColor = '#ffffff';
+            if (label === 'D' || label === 'G') targetColor = '#ffffff';
             else if (label === 'F') targetColor = '#333062';
 
             textLayers.forEach(el => { if(el) el.style.color = targetColor; });
